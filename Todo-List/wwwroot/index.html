@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Todo-list</title>
+
+    <style>
+        button {
+             background-color: deepskyblue;
+             text-align: center;
+             min-height: 30px;
+             min-width: 70px;
+             border-width: 2px;
+             border-radius: 8px;
+             margin-left: 15px;
+             color: white;
+        }
+        
+        input:checked {
+            text-decoration: line-through;
+            color: red;
+        }
+
+
+    </style>
+
+</head>
+<body>
+    <form>
+        <label> new item:</label>
+        <div class="input">
+            <input type="hidden" id="itemId"/>
+            <input id="itemName" placeholder="    type text" />
+            <button id="addBtn">Add</button>
+        </div>
+        
+    </form>
+
+    <table>
+        <thead><tr>curent items: </tr></thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+
+        async function getItems() {
+
+            const response = await fetch("/api/items", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+
+            if (response.ok === true) {
+
+                const items = await response.json();
+                const rows = document.querySelector("tbody");
+                items.forEach(item => rows.appendChild(row(item)));
+
+            }
+        }
+
+        async function createUser(itemName) {
+
+            const response = await fetch("/api/items", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: itemName,
+                })
+            });
+
+            if (response.ok === true) {
+                const item = await response.json();
+                document.querySelector("tbody").appendChild(row(item));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+
+        function row(item) {
+
+            const tr = document.createElement("tr");
+
+            const checkBox = document.createElement("input");
+            checkBox.setAttribute("type", "checkbox");
+            checkBox.setAttribute("itemId", item.id);
+
+            const label = document.createElement("label");
+            label.setAttribute("itemId", item.id);
+            label.innerText = `${item.id}. ${item.name}`;
+
+            const nameTd = document.createElement("td");
+            nameTd.appendChild(checkBox);
+            nameTd.appendChild(label);
+            tr.append(nameTd);
+
+            return tr;
+        }
+
+        document.getElementById("addBtn").addEventListener("click", async () => {
+            const itemName = document.getElementById("itemName").value;
+
+            await createUser(itemName);
+        });
+
+        getItems();
+
+        document.addEventListener("change", function () {
+            let checkbox = event.target;
+
+            document.querySelectorAll("input[type='checkbox']");
+
+            if (checkbox.tagName === 'INPUT' && checkbox.type === 'checkbox' && checkbox.checked === true) {
+                console.log(`Checked ${checkbox['itemId']}`);
+                let id = checkbox.getAttribute("itemid");
+                let text = document.querySelector(`label[itemid='${id}']`)
+                text.style.textDecoration = "line-through";
+                text.style.textDecorationColor = "red";
+            }
+            else {
+                let id = checkbox.getAttribute("itemid");
+                let text = document.querySelector(`label[itemid='${id}']`)
+                text.style.textDecoration = "none";
+            }
+            
+        });
+        
+    </script>
+
+</body>
+</html>
